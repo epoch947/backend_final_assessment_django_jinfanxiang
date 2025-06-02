@@ -1,0 +1,2 @@
+# backend_final_assessment_django_jinfanxiang
+Django Internship Project Challenge
