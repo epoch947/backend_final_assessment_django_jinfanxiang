@@ -43,6 +43,7 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     # Swagger UI (no authentication required to view docs):
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/reports/', include('reports.urls')),
 ]
 
 
