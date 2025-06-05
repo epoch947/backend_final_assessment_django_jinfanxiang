@@ -1,0 +1,101 @@
+<!-- reports/templates/reports/performance_chart.html -->
+{% extends "base.html" %}
+{% block title %}Performance Chart{% endblock %}
+
+{% block content %}
+  <div style="width: 70%; max-width: 800px; margin: 2rem auto;">
+    <h2>Average Performance by Month</h2>
+
+    <!-- 1) Add a form for selecting start/end year & month -->
+    <form method="get" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-end;">
+      <div>
+        <label for="start_year">Start Year:</label><br/>
+        <input
+          type="number"
+          id="start_year"
+          name="start_year"
+          value="{{ start_year }}"
+          min="2000"
+          max="2100"
+          style="width: 80px;"
+        />
+      </div>
+      <div>
+        <label for="start_month">Start Month:</label><br/>
+        <input
+          type="number"
+          id="start_month"
+          name="start_month"
+          value="{{ start_month }}"
+          min="1"
+          max="12"
+          style="width: 60px;"
+        />
+      </div>
+      <div>
+        <label for="end_year">End Year:</label><br/>
+        <input
+          type="number"
+          id="end_year"
+          name="end_year"
+          value="{{ end_year }}"
+          min="2000"
+          max="2100"
+          style="width: 80px;"
+        />
+      </div>
+      <div>
+        <label for="end_month">End Month:</label><br/>
+        <input
+          type="number"
+          id="end_month"
+          name="end_month"
+          value="{{ end_month }}"
+          min="1"
+          max="12"
+          style="width: 60px;"
+        />
+      </div>
+      <button type="submit" style="height: 2rem;">Update</button>
+    </form>
+
+    <!-- 2) Fixed‐height container for the canvas -->
+    <div style="position: relative; width: 100%; height: 400px;">
+      <canvas id="performanceChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      const labels = {{ chart_labels|safe }};   // e.g. ["2/2025","3/2025",…]
+      const dataValues = {{ chart_data|safe }}; // e.g. [78.5,82.3,…]
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Avg Score',
+            data: dataValues,
+            fill: false,
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            tension: 0.1,
+            pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 100
+            }
+          }
+        }
+      });
+    });
+  </script>
+{% endblock %}

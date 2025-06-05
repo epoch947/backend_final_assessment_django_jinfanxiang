@@ -125,9 +125,9 @@ class EmployeeViewSetPermissionTests(APITestCase):
             "phone_number": "7778889999",
             "address": "789 Blvd",
             "date_of_joining": "2024-03-01",
-            "department": self.dept_eng.id,
-            # A “user” field must point to an existing User. Using admin_user for simplicity.
-            "user": self.admin_user.id
+            "department_id": self.dept_eng.id,
+            "user": self.emp_user1.id
+
         }
 
         # As Employee → should be forbidden
@@ -160,7 +160,7 @@ class EmployeeViewSetPermissionTests(APITestCase):
             "phone_number": "9998887777",
             "address": "321 New St",
             "date_of_joining": "2024-01-01",
-            "department": self.dept_hr.id,
+            "department_id": self.dept_hr.id,
             "user": self.emp_user1.id
         }
 

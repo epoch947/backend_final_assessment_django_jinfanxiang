@@ -25,4 +25,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "date_of_joining",
             "department",
             "department_id",
+
         ]
+        # read_only_fields = ["user"]

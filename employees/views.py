@@ -66,3 +66,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated & IsEmployeeSelfOrHRorAdmin]
 
         return [permission() for permission in permission_classes]
+
+    # def perform_create(self, serializer):
+    #     # Always assign the new Employee to request.user
+    #     serializer.save(user=self.request.user)

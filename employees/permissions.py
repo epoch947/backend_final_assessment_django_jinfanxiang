@@ -53,6 +53,8 @@ class IsEmployeeSelfOrHRorAdmin(permissions.BasePermission):
         # obj is an Employee instance
         user = request.user
 
+        # user_groups = {g.name for g in user.groups.all()}
+
         # Admin and HR can do anything
         if user.groups.filter(name__in=["Admin", "HR"]).exists():
             return True
@@ -60,6 +62,26 @@ class IsEmployeeSelfOrHRorAdmin(permissions.BasePermission):
         # An Employee user can only operate on their own Employee record
         if user.groups.filter(name="Employee").exists():
             # obj.user is the User linked to obj (Employee instance)
-            return obj.user == user
+            return obj.employee.user == user
 
         return False
+
+        # # Admin group: can do everything
+        # if "Admin" in user_groups:
+        #     return True
+        #
+        # # HR group: can view and update any Employee (or their attendance)
+        # if "HR" in user_groups:
+        #     if request.method in ("GET", "HEAD", "OPTIONS", "PUT", "PATCH"):
+        #         return True
+        #     else:
+        #         # Disallow POST or DELETE for HR
+        #         return False
+        #
+        # # Employee group: can view only if the Attendance belongs to themselves
+        # if "Employee" in user_groups:
+        #     # Safe methods allowed for all attendance records
+        #     if request.method in ("GET", "HEAD", "OPTIONS"):
+        #         return True
+        #     return False
+        # return False

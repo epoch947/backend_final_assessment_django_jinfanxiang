@@ -24,7 +24,7 @@ from performance.models import Performance
 from attendance.models import Attendance
 from rest_framework.views import APIView
 from .serializers import DepartmentPerformanceSerializer, DepartmentAttendanceSerializer
-
+from datetime import date, timedelta
 
 class AveragePerformanceByDepartmentView(views.APIView):
     """
@@ -191,3 +191,123 @@ class MonthlyAttendanceChartView(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+def attendance_chart_view(request):
+    """
+    Renders a page with a bar chart of Present vs Absent counts
+    for a given year/month (default: current).
+    """
+    today = date.today()
+    year = request.GET.get('year', today.year)
+    month = request.GET.get('month', today.month)
+    try:
+        year = int(year)
+        month = int(month)
+    except ValueError:
+        year = today.year
+        month = today.month
+
+    # Filter attendance records for that month
+    qs = Attendance.objects.filter(date__year=year, date__month=month)
+
+    totals = qs.aggregate(
+        present_count=Count('id', filter=Q(status='present')),
+        absent_count=Count('id', filter=Q(status='absent'))
+    )
+
+    present_count = totals.get('present_count') or 0
+    absent_count = totals.get('absent_count') or 0
+
+    context = {
+        'year': year,
+        'month': month,
+        'chart_labels': ['present', 'absent'],
+        'chart_data': [present_count, absent_count],
+    }
+    return render(request, 'reports/attendance_chart.html', context)
+
+
+def performance_chart_view(request):
+    """
+    Renders a page with a line chart of average performance scores
+    between a user‐selected start and end month/year (inclusive).
+    If no range is provided, defaults to the last 6 months.
+    """
+
+    # 1) Attempt to read GET params for start and end:
+    today = date.today()
+    # If the form supplied these, they'll be strings like "2024", "3"
+    start_year_str = request.GET.get('start_year')
+    start_month_str = request.GET.get('start_month')
+    end_year_str = request.GET.get('end_year')
+    end_month_str = request.GET.get('end_month')
+
+    def parse_int(s, default):
+        try:
+            return int(s)
+        except (TypeError, ValueError):
+            return default
+
+    # 2) Convert to ints, falling back if invalid
+    # Default end_year/end_month = current year/month
+    end_year = parse_int(end_year_str, today.year)
+    end_month = parse_int(end_month_str, today.month)
+
+    # Default start to 5 months before end
+    # But if start_year/month provided, parse
+    if start_year_str and start_month_str:
+        start_year = parse_int(start_year_str, today.year)
+        start_month = parse_int(start_month_str, today.month)
+    else:
+        # Subtract 5 months from (end_year, end_month), roughly
+        # We want to go back exactly 5 calendar months:
+        # E.g. if end is June 2025 (6/2025), start = January 2025 (1/2025).
+        # Compute: total_months = end_year * 12 + end_month - 1
+        total_months_end = end_year * 12 + (end_month - 1)
+        total_months_start = total_months_end - 5
+        start_year = total_months_start // 12
+        start_month = (total_months_start % 12) + 1
+
+    # 3) Build a list of (year, month) pairs from start → end inclusive
+    # Example helper:
+    def build_year_month_list(s_year, s_month, e_year, e_month):
+        ym_list = []
+        # Convert each to a single “month index”
+        start_index = s_year * 12 + (s_month - 1)
+        end_index = e_year * 12 + (e_month - 1)
+        if end_index < start_index:
+            # Swap if they accidentally reversed
+            start_index, end_index = end_index, start_index
+        for idx in range(start_index, end_index + 1):
+            y = idx // 12
+            m = (idx % 12) + 1
+            ym_list.append((y, m))
+        return ym_list
+
+    year_month_pairs = build_year_month_list(
+        start_year, start_month, end_year, end_month
+    )
+
+    # 4) For each (year, month), compute average rating
+    labels = []
+    data_values = []
+    for y, m in year_month_pairs:
+        # Note: Performance model uses "review_date" (not "date")
+        avg_obj = Performance.objects.filter(
+            review_date__year=y,
+            review_date__month=m
+        ).aggregate(avg_score=Avg('rating'))
+        avg_score = avg_obj.get('avg_score') or 0.0
+        labels.append(f"{m}/{y}")            # e.g. "2/2025"
+        data_values.append(round(avg_score, 1))  # one decimal place
+
+    # 5) Pass everything into context, including form defaults
+    context = {
+        'chart_labels': labels,
+        'chart_data': data_values,
+        'start_year': start_year,
+        'start_month': start_month,
+        'end_year': end_year,
+        'end_month': end_month,
+    }
+    return render(request, 'reports/performance_chart.html', context)

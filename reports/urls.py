@@ -4,6 +4,7 @@ from .views import (
     MonthlyAttendanceRateByDepartmentView,
 )
 from .views import MonthlyAttendanceChartView
+from .views import attendance_chart_view, performance_chart_view
 
 urlpatterns = [
     path(
@@ -21,4 +22,6 @@ urlpatterns = [
         MonthlyAttendanceChartView.as_view(),
         name="monthly_attendance_chart",
     ),
+    path('attendance-chart/', attendance_chart_view, name='attendance-chart'),
+    path('performance-chart/', performance_chart_view, name='performance-chart'),
 ]
