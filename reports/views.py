@@ -25,7 +25,7 @@ from attendance.models import Attendance
 from rest_framework.views import APIView
 from .serializers import DepartmentPerformanceSerializer, DepartmentAttendanceSerializer
 from datetime import date, timedelta
-
+import calendar
 class AveragePerformanceByDepartmentView(views.APIView):
     """
     GET /api/reports/average-performance/
@@ -311,3 +311,63 @@ def performance_chart_view(request):
         'end_month': end_month,
     }
     return render(request, 'reports/performance_chart.html', context)
+
+def employees_per_department_view(request):
+    """
+    Renders a pie chart that shows, for each Department, how many Employees it has.
+    """
+
+    # Annotate each Department with the count of its related Employee instances.
+    # The reverse relation is called 'employees' (as per your model); so:
+    qs = Department.objects.annotate(emp_count=Count('employees'))
+
+    # Build two parallel lists: department names (labels) and their employee counts (data).
+    labels = [dept.name for dept in qs]
+    data_values = [dept.emp_count for dept in qs]
+
+    context = {
+        'chart_labels': labels,    # e.g. ["Engineering", "HR", "Sales"]
+        'chart_data': data_values, # e.g. [12, 5, 8]
+    }
+    return render(request, 'reports/employees_per_department.html', context)
+
+def monthly_attendance_overview_view(request):
+    """
+    Renders a bar chart of daily Present counts for a selected year & month.
+    If no year/month in GET, defaults to current month.
+    """
+    today = date.today()
+
+    # Read GET params
+    year = request.GET.get('year', today.year)
+    month = request.GET.get('month', today.month)
+    try:
+        year = int(year)
+        month = int(month)
+    except ValueError:
+        year = today.year
+        month = today.month
+
+    # 1) Determine how many days are in that month
+    num_days = calendar.monthrange(year, month)[1]
+
+    labels = list(range(1, num_days + 1))  # [1,2,3,…,28/29/30/31]
+
+    # 2) For each day, count how many Attendance.status="Present"
+    data_values = []
+    for day in labels:
+        count_present = Attendance.objects.filter(
+            date__year=year,
+            date__month=month,
+            date__day=day,
+            status='present'
+        ).count()
+        data_values.append(count_present)
+
+    context = {
+        'year': year,
+        'month': month,
+        'chart_labels': labels,    # e.g. [1,2,3,…,30]
+        'chart_data': data_values, # e.g. [12,14,13,…,10]
+    }
+    return render(request, 'reports/monthly_attendance_overview.html', context)

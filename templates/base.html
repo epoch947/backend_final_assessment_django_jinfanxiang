@@ -6,22 +6,22 @@
   <title>{% block title %}Dashboard{% endblock %}</title>
   {% load static %}
 
-  <!-- Optional: Link to a global CSS file if you have one -->
+  <!-- (Optional) Your global CSS, e.g. -->
   <!-- <link rel="stylesheet" href="{% static 'css/global.css' %}" /> -->
 
-  <!-- Include Chart.js via CDN -->
+  <!-- Chart.js from CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <nav style="padding: 1rem; background: #f0f0f0;">
+  <nav style="padding:1rem;background:#f0f0f0;">
     <a href="{% url 'attendance-chart' %}">Attendance Chart</a> |
-    <a href="{% url 'performance-chart' %}">Performance Chart</a>
+    <a href="{% url 'performance-chart' %}">Performance Chart</a> |
+    <a href="{% url 'employees-per-department' %}">Employees/Dept</a> |
+    <a href="{% url 'monthly-attendance-overview' %}">Monthly Attendance</a>
   </nav>
 
-  <main style="padding: 2rem;">
-    {% block content %}
-    <!-- individual pages will override this -->
-    {% endblock %}
+  <main style="padding:2rem;">
+    {% block content %}{% endblock %}
   </main>
 </body>
 </html>

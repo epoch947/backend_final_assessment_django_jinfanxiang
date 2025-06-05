@@ -4,7 +4,7 @@ from .views import (
     MonthlyAttendanceRateByDepartmentView,
 )
 from .views import MonthlyAttendanceChartView
-from .views import attendance_chart_view, performance_chart_view
+from .views import attendance_chart_view, performance_chart_view, employees_per_department_view, monthly_attendance_overview_view
 
 urlpatterns = [
     path(
@@ -24,4 +24,7 @@ urlpatterns = [
     ),
     path('attendance-chart/', attendance_chart_view, name='attendance-chart'),
     path('performance-chart/', performance_chart_view, name='performance-chart'),
+    path('employees-per-department/', employees_per_department_view, name='employees-per-department'),
+    path('monthly-attendance-overview/', monthly_attendance_overview_view, name='monthly-attendance-overview'),
+
 ]

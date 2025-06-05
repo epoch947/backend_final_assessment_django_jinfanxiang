@@ -1,0 +1,63 @@
+<!-- reports/templates/reports/employees_per_department.html -->
+{% extends "base.html" %}
+{% block title %}Employees per Department{% endblock %}
+
+{% block content %}
+  <div style="width: 60%; max-width: 700px; margin: 2rem auto;">
+    <h2>Employees per Department</h2>
+
+    <!-- Wrap the canvas in a parent div with fixed height -->
+    <div style="position: relative; width: 100%; height: 400px;">
+      <canvas id="employeesDeptChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ctx = document.getElementById('employeesDeptChart').getContext('2d');
+
+      // chart_labels is a Python list of strings (dept names), e.g. ["Eng", "HR", ...]
+      // chart_data is the matching counts, e.g. [12, 5, ...]
+      const labels = {{ chart_labels|safe }};
+      const dataValues = {{ chart_data|safe }};
+
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Number of Employees',
+            data: dataValues,
+            backgroundColor: [
+              // You can supply as many colors as you have departments; Chart.js will cycle if fewer.
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    });
+  </script>
+{% endblock %}
