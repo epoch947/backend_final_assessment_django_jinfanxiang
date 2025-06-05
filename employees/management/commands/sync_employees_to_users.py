@@ -1,4 +1,3 @@
-
 import random
 import string
 from django.core.management.base import BaseCommand
@@ -33,7 +32,11 @@ class Command(BaseCommand):
                     base = desired_username
                     new_username = base
                     suffix = 1
-                    while User.objects.exclude(pk=user.pk).filter(username=new_username).exists():
+                    while (
+                        User.objects.exclude(pk=user.pk)
+                        .filter(username=new_username)
+                        .exists()
+                    ):
                         new_username = f"{base}_{suffix}"
                         suffix += 1
 
@@ -63,9 +66,7 @@ class Command(BaseCommand):
                     random.choices(string.ascii_letters + string.digits, k=12)
                 )
                 user = User.objects.create_user(
-                    username=new_username,
-                    email=emp.email,
-                    password=random_password
+                    username=new_username, email=emp.email, password=random_password
                 )
                 # Mark the user active and staff (so they can log into /admin/)
                 user.is_active = True

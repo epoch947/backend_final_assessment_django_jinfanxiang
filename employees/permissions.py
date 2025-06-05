@@ -1,5 +1,3 @@
-
-
 from rest_framework import permissions
 
 
@@ -12,9 +10,7 @@ class IsAdminGroup(permissions.BasePermission):
         user = request.user
         # Check if user is authenticated and belongs to 'Admin' group
         return (
-            user
-            and user.is_authenticated
-            and user.groups.filter(name="Admin").exists()
+            user and user.is_authenticated and user.groups.filter(name="Admin").exists()
         )
 
 
@@ -25,11 +21,7 @@ class IsHRGroup(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return (
-            user
-            and user.is_authenticated
-            and user.groups.filter(name="HR").exists()
-        )
+        return user and user.is_authenticated and user.groups.filter(name="HR").exists()
 
 
 class IsEmployeeSelfOrHRorAdmin(permissions.BasePermission):

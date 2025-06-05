@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
@@ -24,26 +25,30 @@ from rest_framework.permissions import AllowAny
 schema_view = get_schema_view(
     openapi.Info(
         title="Employee Management API",
-        default_version='v1',
+        default_version="v1",
     ),
     public=True,
-    permission_classes=[AllowAny],          # allow everyone
-    authentication_classes=[],              # no auth needed to view swagger
+    permission_classes=[AllowAny],  # allow everyone
+    authentication_classes=[],  # no auth needed to view swagger
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # Employee/Department endpoints
-    path('api/employees/', include('employees.urls')),      # handles /api/employees/ and /api/employees/departments/
+    path(
+        "api/employees/", include("employees.urls")
+    ),  # handles /api/employees/ and /api/employees/departments/
     # Attendance endpoints
-    path('api/attendance/', include('attendance.urls')),     # handles /api/attendance/
+    path("api/attendance/", include("attendance.urls")),  # handles /api/attendance/
     # Performance endpoints
-    path('api/performance/', include('performance.urls')),   # handles /api/performance/
+    path("api/performance/", include("performance.urls")),  # handles /api/performance/
     # Token‐auth endpoint:
-    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     # Swagger UI (no authentication required to view docs):
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('api/reports/', include('reports.urls')),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("api/reports/", include("reports.urls")),
 ]
-
-
