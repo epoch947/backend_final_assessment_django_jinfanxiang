@@ -1,14 +1,16 @@
-from django.shortcuts import render
+# performance/views.py
 
-# Create your views here.
+from django.shortcuts import render
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.authentication import TokenAuthentication
+
 from .models import Performance
 from .serializers import PerformanceSerializer
-from .filters import PerformanceFilter  # import the filter class
-from employees.permissions import IsEmployeeSelfOrHRorAdmin
-from rest_framework.authentication import TokenAuthentication
+from .filters import PerformanceFilter
+from employees.permissions import IsAdminGroup, IsHRGroup, IsPerformanceSelfOrHRorAdmin
+
 
 class PerformanceViewSet(viewsets.ModelViewSet):
     """
@@ -17,36 +19,37 @@ class PerformanceViewSet(viewsets.ModelViewSet):
       - An Employee user can only see and modify their own Performance records.
     """
 
-    queryset = Performance.objects.select_related("employee").all()
-    serializer_class = PerformanceSerializer
-    # Only authenticated users who pass the object‐level rules in IsEmployeeSelfOrHRorAdmin may access
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated & IsEmployeeSelfOrHRorAdmin]
+    serializer_class = PerformanceSerializer
     filter_backends = [
         DjangoFilterBackend,
         filters.OrderingFilter,
-        filters.SearchFilter,  # search a text field
+        filters.SearchFilter,
     ]
-    # Tell DRF to usePerformanceFilter
     filterset_class = PerformanceFilter
-    # filterset_fields = ['employee__id', 'rating', 'review_date']
     search_fields = ["comment"]
     ordering_fields = ["review_date", "rating"]
 
+    def get_permissions(self):
+        """
+        - Only Admin or HR may create a new Performance record.
+        - For all other actions, use IsPerformanceSelfOrHRorAdmin.
+        """
+        if self.action == "create":
+            permission_classes = [IsAuthenticated & (IsAdminGroup | IsHRGroup)]
+        else:
+            permission_classes = [IsAuthenticated & IsPerformanceSelfOrHRorAdmin]
+
+        return [permission() for permission in permission_classes]
+
     def get_queryset(self):
         """
-        Override get_queryset() so that:
-          - Users in Admin or HR groups see all Performance records.
-          - Users in Employee group see only Performance records where
-            performance.employee.user == request.user.
+        Admin and HR see all Performance records;
+        Employee sees only Performance records linked to their own Employee user.
         """
         user = self.request.user
-
-        # Admin and HR can view all Performance records
         if user.groups.filter(name__in=["Admin", "HR"]).exists():
             return Performance.objects.select_related("employee").all()
-
-        # Otherwise (Employee), only return records linked to this user's Employee profile
         return Performance.objects.select_related("employee").filter(
             employee__user=user
         )

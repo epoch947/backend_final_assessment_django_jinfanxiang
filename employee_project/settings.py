@@ -14,11 +14,12 @@ import os
 import environ
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     DATABASE_URL=(str, "postgres://postgres:12345678@localhost:5432/employee_db"),
     SECRET_KEY=(str, ""),
     EMAIL_HOST=(str, "smtp.gmail.com"),
