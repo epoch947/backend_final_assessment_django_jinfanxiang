@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # -----------------------
+  # PostgreSQL Service
+  # -----------------------
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # can also expose port 5432 to connect externally:
+    # ports:
+    #   - '5432:5432'
+
+  # -----------------------
+  # Redis Service
+  # -----------------------
+  redis:
+    image: redis:6-alpine
+    ports:
+      - '6379:6379'
+
+  # -----------------------
+  # Django Web Service
+  # -----------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /app/entrypoint.sh
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:
